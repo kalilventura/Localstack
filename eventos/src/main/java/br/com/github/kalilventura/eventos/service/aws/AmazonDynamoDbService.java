@@ -1,13 +1,15 @@
 package br.com.github.kalilventura.eventos.service.aws;
 
-import br.com.github.kalilventura.eventos.domain.File;
+import br.com.github.kalilventura.eventos.domain.Archive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class AmazonDynamoDbService {
@@ -17,17 +19,16 @@ public class AmazonDynamoDbService {
     @Value("${dynamo.table}")
     private String tableName;
 
-    public boolean putItem(File file) {
+    public boolean putItem(Archive archive) {
         try {
 
             HashMap<String, AttributeValue> itemValues = new HashMap<String, AttributeValue>();
-            itemValues.put("id", AttributeValue.builder().s(file.getId()).build());
-            itemValues.put("name", AttributeValue.builder().s(file.getName()).build());
-            itemValues.put("extension", AttributeValue.builder().s(file.getExtension()).build());
-            itemValues.put("size", AttributeValue.builder().s(file.getSize()).build());
-            itemValues.put("version", AttributeValue.builder().s(file.getVersion()).build());
-            itemValues.put("numberOfDownloads", AttributeValue.builder().s(file.getNumberOfDownloads()).build());
-
+            itemValues.put("id", AttributeValue.builder().s(String.valueOf(archive.getId())).build());
+            itemValues.put("name", AttributeValue.builder().s(archive.getName()).build());
+            itemValues.put("extension", AttributeValue.builder().s(archive.getExtension()).build());
+            itemValues.put("size", AttributeValue.builder().s(String.valueOf(archive.getSize())).build());
+            itemValues.put("version", AttributeValue.builder().s(archive.getVersion()).build());
+            itemValues.put("numberOfDownloads", AttributeValue.builder().s(String.valueOf(archive.getNumberOfDownloads())).build());
 
             PutItemRequest request = PutItemRequest.builder()
                     .tableName(tableName)
@@ -48,12 +49,11 @@ public class AmazonDynamoDbService {
         }
     }
 
-    public File getFile(String key, String keyVal) {
+    public Archive getFile(String key, String keyVal) {
         try {
             HashMap<String, AttributeValue> keyToGet = new HashMap<String, AttributeValue>();
 
-            keyToGet.put(key, AttributeValue.builder()
-                    .s(keyVal).build());
+            keyToGet.put(key, AttributeValue.builder().s(keyVal).build());
 
             GetItemRequest request = GetItemRequest.builder()
                     .key(keyToGet)
@@ -79,14 +79,12 @@ public class AmazonDynamoDbService {
 
     public boolean deleteFile(String key, String keyVal) {
         try {
-            HashMap<String, AttributeValue> keyToGet =
-                    new HashMap<String, AttributeValue>();
+            HashMap<String, AttributeValue> keyToGet = new HashMap<String, AttributeValue>();
 
-            keyToGet.put(key, AttributeValue.builder()
-                    .s(keyVal)
-                    .build());
+            keyToGet.put(key, AttributeValue.builder().s(keyVal).build());
 
-            DeleteItemRequest deleteReq = DeleteItemRequest.builder()
+            DeleteItemRequest deleteReq = DeleteItemRequest
+                    .builder()
                     .tableName(tableName)
                     .key(keyToGet)
                     .build();
@@ -94,7 +92,23 @@ public class AmazonDynamoDbService {
             DeleteItemResponse response = dynamoDbClient.deleteItem(deleteReq);
 
             return response.sdkHttpResponse().isSuccessful();
+        } catch (DynamoDbException e) {
+            System.err.println(e.getMessage());
+            throw e;
+        }
+    }
 
+    public void update(String key, String keyValue) {
+        try {
+            Map<String, AttributeValue> valueMap = new HashMap<>();
+            valueMap.put(key, AttributeValue.builder().s(keyValue).build());
+
+            UpdateItemRequest request = UpdateItemRequest
+                    .builder()
+                    .key(valueMap)
+                    .build();
+
+            UpdateItemResponse response = dynamoDbClient.updateItem(request);
         } catch (DynamoDbException e) {
             System.err.println(e.getMessage());
             throw e;

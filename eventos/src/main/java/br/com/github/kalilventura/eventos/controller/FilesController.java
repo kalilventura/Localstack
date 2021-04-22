@@ -1,5 +1,6 @@
 package br.com.github.kalilventura.eventos.controller;
 
+import br.com.github.kalilventura.eventos.domain.Archive;
 import br.com.github.kalilventura.eventos.service.FileService;
 import br.com.github.kalilventura.eventos.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,13 @@ public class FilesController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/downloadFile/image/{fileName:.+}")
+    @PostMapping("/upload/file")
+    public ResponseEntity<Archive> uploadFile(@RequestParam("file") MultipartFile file) {
+        Archive response = fileService.uploadFile(file);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/download/image/{fileName:.+}")
     public ResponseEntity<Resource> downloadImage(@PathVariable String fileName, HttpServletRequest request) throws IOException {
         try {
             Resource resource = imageService.downloadPicture(fileName);
@@ -43,13 +50,7 @@ public class FilesController {
         }
     }
 
-    @PostMapping("/upload/file")
-    public ResponseEntity<Void> uploadFile(@RequestParam("file") MultipartFile file) {
-        boolean response = fileService.uploadFile(file);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/downloadFile/file/{fileName:.+}")
+    @GetMapping("/download/file/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) throws IOException {
         try {
             Resource resource = fileService.downloadFile(fileName);
@@ -63,5 +64,21 @@ public class FilesController {
         } catch (Exception ex) {
             throw ex;
         }
+    }
+
+    @DeleteMapping("/delete/file/{fileName:.+}")
+    public ResponseEntity deleteFile(@PathVariable String fileName) {
+        fileService.deleteFile(fileName);
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
+
+    @DeleteMapping("/delete/image/{fileName:.+}")
+    public ResponseEntity deleteImage(@PathVariable String fileName) {
+        imageService.deleteImage(fileName);
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 }

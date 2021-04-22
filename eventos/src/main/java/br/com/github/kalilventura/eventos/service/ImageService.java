@@ -1,5 +1,7 @@
 package br.com.github.kalilventura.eventos.service;
 
+import br.com.github.kalilventura.eventos.domain.Archive;
+import br.com.github.kalilventura.eventos.repository.ArchiveRepository;
 import br.com.github.kalilventura.eventos.service.aws.AmazonDynamoDbService;
 import br.com.github.kalilventura.eventos.service.aws.AmazonS3Service;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,8 @@ public class ImageService {
     private AmazonS3Service s3Service;
     @Autowired
     private AmazonDynamoDbService dynamoDbService;
+    @Autowired
+    private ArchiveRepository repository;
 
     @Value("${img.prefix.event}")
     private String prefix;
@@ -45,22 +49,24 @@ public class ImageService {
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
         String fileName = prefix + imageName;
 
-        br.com.github.kalilventura.eventos.domain.File file = new br.com.github.kalilventura.eventos.domain.File();
-        file.setExtension(extension);
-        file.setName(fileName);
-        file.setSize(String.valueOf(size));
-        file.setVersion("1");
-        file.setNumberOfDownloads("0");
+        Archive archive = new Archive();
+        archive.setExtension(extension);
+        archive.setName(fileName);
+        archive.setSize(size);
+        archive.setVersion("1");
+        archive.setNumberOfDownloads(0);
+        archive.setETag(s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image"));
 
-        file.setId(s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image"));
-
-        return dynamoDbService.putItem(file);
+        return dynamoDbService.putItem(archive);
     }
 
     @SneakyThrows
-    public Resource downloadPicture(String fileName) {
+    public Resource downloadPicture(String name) {
         try {
-            ResponseInputStream<GetObjectResponse> inputStream = s3Service.downloadFile(fileName);
+            Archive archive = repository.findArchiveByName(name);
+            ResponseInputStream<GetObjectResponse> inputStream = s3Service.downloadFile(name);
+
+            String fileName = archive.getName() + "." + archive.getExtension();
 
             byte[] fileBytes = inputStream.readAllBytes();
 
@@ -70,6 +76,12 @@ public class ImageService {
             URI fileUri = outputFile.toPath().toUri();
 
             Resource resource = new UrlResource(fileUri);
+
+            long numberDownloads = archive.getNumberOfDownloads();
+            archive.setNumberOfDownloads(numberDownloads++);
+
+            repository.save(archive);
+
             return resource;
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,10 +89,21 @@ public class ImageService {
         } catch (Exception ex) {
             throw ex;
         }
-
     }
 
-    public BufferedImage getJpgImageFromFile(MultipartFile uploadedFile) {
+    @SneakyThrows
+    public boolean deleteImage(String name) {
+        try {
+            Archive archive = repository.findArchiveByName(name);
+            repository.delete(archive);
+
+            return s3Service.deleteFile(name);
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
+
+    private BufferedImage getJpgImageFromFile(MultipartFile uploadedFile) {
         try {
             BufferedImage img = ImageIO.read(uploadedFile.getInputStream());
             return img;
@@ -89,14 +112,14 @@ public class ImageService {
         }
     }
 
-    public BufferedImage pngToJpg(BufferedImage img) {
+    private BufferedImage pngToJpg(BufferedImage img) {
         BufferedImage jpgImage = new BufferedImage(img.getWidth(), img.getHeight(),
                 BufferedImage.TYPE_INT_RGB);
         jpgImage.createGraphics().drawImage(img, 0, 0, Color.WHITE, null);
         return jpgImage;
     }
 
-    public InputStream getInputStream(BufferedImage img, String extension) {
+    private InputStream getInputStream(BufferedImage img, String extension) {
         try {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             ImageIO.write(img, extension, os);
@@ -106,7 +129,7 @@ public class ImageService {
         }
     }
 
-    public BufferedImage cropSquare(BufferedImage sourceImg) {
+    private BufferedImage cropSquare(BufferedImage sourceImg) {
         int min = (sourceImg.getHeight() <= sourceImg.getWidth()) ? sourceImg.getHeight() : sourceImg.getWidth();
         return Scalr.crop(
                 sourceImg,
@@ -116,7 +139,7 @@ public class ImageService {
                 min);
     }
 
-    public BufferedImage resize(BufferedImage sourceImg, int size) {
+    private BufferedImage resize(BufferedImage sourceImg, int size) {
         return Scalr.resize(sourceImg, Scalr.Method.ULTRA_QUALITY, size);
     }
 }
