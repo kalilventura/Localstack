@@ -4,6 +4,7 @@ import br.com.github.kalilventura.eventos.domain.Archive;
 import br.com.github.kalilventura.eventos.repository.ArchiveRepository;
 import br.com.github.kalilventura.eventos.service.aws.AmazonDynamoDbService;
 import br.com.github.kalilventura.eventos.service.aws.AmazonS3Service;
+import br.com.github.kalilventura.eventos.service.aws.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
@@ -32,6 +33,8 @@ public class FileService {
     private AmazonDynamoDbService dynamoDbService;
     @Autowired
     private ArchiveRepository repository;
+    @Autowired
+    private SqsService sqsService;
 
     @Value("${img.prefix.event}")
     private String prefix;
@@ -39,10 +42,10 @@ public class FileService {
     @SneakyThrows
     public Archive uploadFile(MultipartFile multipartFile) {
         long size = multipartFile.getSize();
-        String imageName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
+        String originalFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
 
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-        String fileName = prefix + "-" + LocalDate.now() + "-" + imageName;
+        String fileName = prefix + "-" + LocalDate.now() + "-" + originalFileName;
 
         InputStream inputFile = multipartFile.getInputStream();
         Archive archive = new Archive();
@@ -58,6 +61,10 @@ public class FileService {
 
         //dynamoDbService.putItem(archive);
         repository.save(archive);
+
+        String message = "File " + archive.getName() + " created at" + LocalDate.now();
+        sqsService.publish(message);
+
         return archive;
     }
 
@@ -84,6 +91,9 @@ public class FileService {
 
             repository.save(archive);
 
+            String message = "File " + archive.getName() + " downloaded at" + LocalDate.now() + " number of downloads: " + numberDownloads;
+            sqsService.publish(message);
+
             return resource;
         } catch (IOException e) {
             e.printStackTrace();
@@ -98,6 +108,9 @@ public class FileService {
         try {
             Archive archive = repository.findArchiveByName(name);
             repository.delete(archive);
+
+            String message = "File " + archive.getName() + " deleted at" + LocalDate.now();
+            sqsService.publish(message);
 
             return s3Service.deleteFile(name);
         } catch (Exception ex) {

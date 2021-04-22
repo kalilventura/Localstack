@@ -19,3 +19,9 @@ aws dynamodb --endpoint-url=http://localhost:4566 describe-table --table-name ev
 
 Listar os objetos na tabela:
 aws dynamodb --endpoint-url=http://localhost:4566 scan --table-name events
+
+Criar uma fila(queue):
+aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name events
+
+Listar filas(queues):
+aws --endpoint-url http://localhost:4566 sqs list-queues

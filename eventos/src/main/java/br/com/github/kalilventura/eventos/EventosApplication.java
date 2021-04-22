@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class EventosApplication {
 
 	public static void main(String[] args) {
-		System.out.println("Initializing system");
+		System.out.println("Trying to initialize system ...");
 		SpringApplication.run(EventosApplication.class, args);
 		System.out.println("Initialized");
 	}
