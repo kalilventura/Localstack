@@ -25,3 +25,6 @@ aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name events
 
 Listar filas(queues):
 aws --endpoint-url http://localhost:4566 sqs list-queues
+
+Para executar o publisher:
+Criar um arquivo .env e colocar as variaveis para o endpoint do localstack, região e endpoint da fila(queue)
