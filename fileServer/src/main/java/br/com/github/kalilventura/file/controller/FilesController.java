@@ -1,8 +1,8 @@
-package br.com.github.kalilventura.eventos.controller;
+package br.com.github.kalilventura.file.controller;
 
-import br.com.github.kalilventura.eventos.domain.Archive;
-import br.com.github.kalilventura.eventos.service.FileService;
-import br.com.github.kalilventura.eventos.service.ImageService;
+import br.com.github.kalilventura.file.domain.Archive;
+import br.com.github.kalilventura.file.service.FileService;
+import br.com.github.kalilventura.file.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;

@@ -1,10 +1,10 @@
-package br.com.github.kalilventura.eventos.service;
+package br.com.github.kalilventura.file.service;
 
-import br.com.github.kalilventura.eventos.domain.Archive;
-import br.com.github.kalilventura.eventos.repository.ArchiveRepository;
-import br.com.github.kalilventura.eventos.service.aws.AmazonDynamoDbService;
-import br.com.github.kalilventura.eventos.service.aws.AmazonS3Service;
-import br.com.github.kalilventura.eventos.service.aws.SqsService;
+import br.com.github.kalilventura.file.domain.Archive;
+import br.com.github.kalilventura.file.repository.ArchiveRepository;
+import br.com.github.kalilventura.file.service.aws.AmazonDynamoDbService;
+import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
+import br.com.github.kalilventura.file.service.aws.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;

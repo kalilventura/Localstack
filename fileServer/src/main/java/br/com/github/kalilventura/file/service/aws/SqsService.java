@@ -1,4 +1,4 @@
-package br.com.github.kalilventura.eventos.service.aws;
+package br.com.github.kalilventura.file.service.aws;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

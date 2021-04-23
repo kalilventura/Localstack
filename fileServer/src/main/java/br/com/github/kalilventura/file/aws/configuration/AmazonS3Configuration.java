@@ -1,6 +1,6 @@
-package br.com.github.kalilventura.eventos.aws.configuration;
+package br.com.github.kalilventura.file.aws.configuration;
 
-import br.com.github.kalilventura.eventos.aws.configuration.properties.S3Properties;
+import br.com.github.kalilventura.file.aws.configuration.properties.S3Properties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

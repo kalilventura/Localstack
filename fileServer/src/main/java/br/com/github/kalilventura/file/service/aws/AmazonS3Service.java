@@ -1,4 +1,4 @@
-package br.com.github.kalilventura.eventos.service.aws;
+package br.com.github.kalilventura.file.service.aws;
 
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;

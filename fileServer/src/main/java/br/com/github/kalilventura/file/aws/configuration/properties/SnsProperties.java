@@ -1,4 +1,4 @@
-package br.com.github.kalilventura.eventos.aws.configuration.properties;
+package br.com.github.kalilventura.file.aws.configuration.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,6 +1,6 @@
-package br.com.github.kalilventura.eventos.service.aws;
+package br.com.github.kalilventura.file.service.aws;
 
-import br.com.github.kalilventura.eventos.domain.Archive;
+import br.com.github.kalilventura.file.domain.Archive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

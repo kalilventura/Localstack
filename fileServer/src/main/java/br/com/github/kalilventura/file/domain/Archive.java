@@ -1,4 +1,4 @@
-package br.com.github.kalilventura.eventos.domain;
+package br.com.github.kalilventura.file.domain;
 
 import lombok.Data;
 
