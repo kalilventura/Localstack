@@ -1,30 +1,12 @@
 # Localstack
 
-Alguns comandos para ajudar nos testes:
+Para executar o projeto:
 
-Criar o bucket:
-aws --endpoint-url=http://localhost:4566 s3api create-bucket --bucket events
+Executar o docker-compose com o docker-compose.yml criado.
 
-Listar os buckets criados:
-aws --endpoint-url=http://localhost:4566 s3api list-buckets
+Dentro da pasta lambda:
+npm init nos projetos para a instalação dos pacotes para a criação dos zips
+criar os zips e colocar na pasta raiz do sistema antes de fazer a execução do cloudformation
 
-Listar os objetos:
-aws --endpoint-url=http://localhost:4566 s3api list-objects --bucket events
-
-Criar uma tabela no Dynamo:
-aws --endpoint-url=http://localhost:4566 dynamodb create-table --table-name events --attribute-definitions AttributeName=id,AttributeType=S AttributeName=name,AttributeType=S --key-schema AttributeName=id,KeyType=HASH AttributeName=name,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=5
-
-Descrever a tabela no Dynamo:
-aws dynamodb --endpoint-url=http://localhost:4566 describe-table --table-name events
-
-Listar os objetos na tabela:
-aws dynamodb --endpoint-url=http://localhost:4566 scan --table-name events
-
-Criar uma fila(queue):
-aws --endpoint-url http://localhost:4566 sqs create-queue --queue-name events
-
-Listar filas(queues):
-aws --endpoint-url http://localhost:4566 sqs list-queues
-
-Para executar o publisher:
-Criar um arquivo .env e colocar as variaveis para o endpoint do localstack, região e endpoint da fila(queue)
+Executar esse comando dentro da pasta
+aws --endpoint-url=http://localhost:4566 cloudformation create-stack --stack-name application-stack --template-body file://cloudformation.yml
