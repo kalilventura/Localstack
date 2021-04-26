@@ -32,3 +32,13 @@ Resources:
       Handler: index.handler
       Runtime: nodejs12.x
       Role: defaultRole
+
+  publisherLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: fileb://publisher.zip
+      FunctionName: PublisherLambda
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Role: defaultRole

@@ -1,27 +1,23 @@
-require('dotenv/config');
-const AWS = require('aws-sdk');
+const { SQS } = require("aws-sdk");
 const { promisify } = require('util');
 
-AWS.config.update({ region: process.env.REGION });
-
-const sqs = new AWS.SQS({ endpoint: process.env.LOCALSTACK_ENDPOINT });
+const sqs = new SQS();
 
 sqs.receiveMessage = promisify(sqs.receiveMessage);
 
-const QueueUrl = process.env.QUEUE_URL;
+const QueueUrl = process.env.QUEUE_URL || 'http://localhost:4566/000000000000/files';
 
 const receiveParams = {
   QueueUrl,
   MaxNumberOfMessages: 1
 };
 
-async function receive() {
+const receive = async (event) => {
   try {
-    const queueData = await sqs.receiveMessage(receiveParams);
+    const queueData = sqs.receiveMessage(receiveParams);
 
     if (queueData && queueData.Messages && queueData.Messages.length > 0) {
       const [firstMessage] = queueData.Messages;
-      console.log('RECEIVED: ', firstMessage);
 
       const deleteParams = {
         QueueUrl,
@@ -29,12 +25,16 @@ async function receive() {
       };
       sqs.deleteMessage(deleteParams);
 
+      return { statusCode: 200, body: JSON.stringify({ message: firstMessage }) }
+
     } else {
-      console.log('waiting...');
+      return { statusCode: 204 }
     }
   } catch (e) {
-    console.log('ERROR: ', e);
+    return { statusCode: 500, body: JSON.stringify({ message: e.message }) }
   }
 }
 
-setInterval(receive, 500);
+module.exports = {
+  receive
+};
