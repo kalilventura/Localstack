@@ -1,20 +1,20 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Terraform to file-application
 Resources:
-  s3Instance:
+  S3Instance:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: files
 
-  sqsQueue:
+  SqsQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: files
 
-  defaultRole:
+  DefaultRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: defaultRole
+      RoleName: DefaultRole
       Description: Default role from lambdas
       AssumeRolePolicyDocument:
         Version: 2010-10-17
@@ -23,7 +23,7 @@ Resources:
             Action: "*"
             Resource: "*"
 
-  helloWorldLambda:
+  HelloWorldLambda:
     Type: AWS::Lambda::Function
     Properties:
       Code:
@@ -31,14 +31,4 @@ Resources:
       FunctionName: SampleLambda
       Handler: index.handler
       Runtime: nodejs12.x
-      Role: defaultRole
-
-  publisherLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Code:
-        ZipFile: fileb://publisher.zip
-      FunctionName: PublisherLambda
-      Handler: index.handler
-      Runtime: nodejs12.x
-      Role: defaultRole
+      Role: !GetAtt DefaultRole.Arn
