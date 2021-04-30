@@ -1,11 +1,10 @@
 package br.com.github.kalilventura.file.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -19,4 +18,13 @@ public class Archive {
     private long size;
     private long numberOfDownloads;
     private String eTag;
+
+    @Column(name = "createdAt", updatable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        setCreatedAt(LocalDate.now());
+    }
 }

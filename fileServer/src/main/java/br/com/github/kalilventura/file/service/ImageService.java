@@ -2,12 +2,10 @@ package br.com.github.kalilventura.file.service;
 
 import br.com.github.kalilventura.file.domain.Archive;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
-import br.com.github.kalilventura.file.service.aws.AmazonDynamoDbService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,34 +29,32 @@ public class ImageService {
     @Autowired
     private AmazonS3Service s3Service;
     @Autowired
-    private AmazonDynamoDbService dynamoDbService;
-    @Autowired
     private ArchiveRepository repository;
 
     @Value("${img.prefix.event}")
     private String prefix;
 
-    public boolean uploadPicture(MultipartFile multipartFile) {
-        long size = multipartFile.getSize();
-        String imageName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
-
-        BufferedImage jpgImage = getJpgImageFromFile(multipartFile);
-        jpgImage = cropSquare(jpgImage);
-        //jpgImage = imageService.resize(jpgImage, size);
-
-        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-        String fileName = prefix + imageName;
-
-        Archive archive = new Archive();
-        archive.setExtension(extension);
-        archive.setName(fileName);
-        archive.setSize(size);
-        archive.setVersion("1");
-        archive.setNumberOfDownloads(0);
-        archive.setETag(s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image"));
-
-        return dynamoDbService.putItem(archive);
-    }
+//    public boolean uploadPicture(MultipartFile multipartFile) {
+//        long size = multipartFile.getSize();
+//        String imageName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
+//
+//        BufferedImage jpgImage = getJpgImageFromFile(multipartFile);
+//        jpgImage = cropSquare(jpgImage);
+//        //jpgImage = imageService.resize(jpgImage, size);
+//
+//        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+//        String fileName = prefix + imageName;
+//
+//        Archive archive = new Archive();
+//        archive.setExtension(extension);
+//        archive.setName(fileName);
+//        archive.setSize(size);
+//        archive.setVersion("1");
+//        archive.setNumberOfDownloads(0);
+//        archive.setETag(s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image"));
+//
+//        return dynamoDbService.putItem(archive);
+//    }
 
     @SneakyThrows
     public Resource downloadPicture(String name) {

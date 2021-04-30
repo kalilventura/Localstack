@@ -24,7 +24,7 @@ public class FilesController {
 
     @PostMapping("/upload/image")
     public ResponseEntity<Void> uploadImage(@RequestParam("file") MultipartFile file) {
-        boolean response = imageService.uploadPicture(file);
+        //boolean response = imageService.uploadPicture(file);
         return ResponseEntity.ok().build();
     }
 

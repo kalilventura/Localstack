@@ -1,12 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Terraform to file-application
+Description: Create stack to file-application
 Resources:
-  S3Instance:
+  S3Files:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: files
 
-  SqsQueue:
+  S3Repository:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: repository
+
+  SqsFiles:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: files
@@ -22,13 +27,3 @@ Resources:
           - Effect: Allow
             Action: "*"
             Resource: "*"
-
-  HelloWorldLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Code:
-        ZipFile: fileb://sample.zip
-      FunctionName: SampleLambda
-      Handler: index.handler
-      Runtime: nodejs12.x
-      Role: !GetAtt DefaultRole.Arn

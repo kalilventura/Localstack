@@ -3,7 +3,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
-os.environ['LOCALSTACK_ENDPOINT_URL'] = 'http://172.29.64.1:4566'
+os.environ['LOCALSTACK_ENDPOINT_URL'] = 'http://172.18.112.1:4566'
 
 
 def get_s3_client():

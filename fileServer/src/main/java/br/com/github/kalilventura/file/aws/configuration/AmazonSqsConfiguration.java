@@ -16,7 +16,7 @@ public class AmazonSqsConfiguration {
         SqsClientBuilder builder = SqsClient
                 .builder();
 
-        if(properties.getEndpoint() != null)
+        if (properties.getEndpoint() != null)
             builder.endpointOverride(properties.getEndpoint());
 
         return builder.build();

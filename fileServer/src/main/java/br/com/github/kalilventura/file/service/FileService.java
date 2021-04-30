@@ -2,13 +2,14 @@ package br.com.github.kalilventura.file.service;
 
 import br.com.github.kalilventura.file.domain.Archive;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
-import br.com.github.kalilventura.file.service.aws.AmazonDynamoDbService;
+import br.com.github.kalilventura.file.service.aws.AmazonLambdaService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
 import br.com.github.kalilventura.file.service.aws.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -30,11 +31,11 @@ public class FileService {
     @Autowired
     private AmazonS3Service s3Service;
     @Autowired
-    private AmazonDynamoDbService dynamoDbService;
-    @Autowired
     private ArchiveRepository repository;
     @Autowired
     private SqsService sqsService;
+    @Autowired
+    private AmazonLambdaService lambdaService;
 
     @Value("${img.prefix.event}")
     private String prefix;
@@ -45,7 +46,7 @@ public class FileService {
         String originalFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
 
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-        String fileName = prefix + "-" + LocalDate.now() + "-" + originalFileName;
+        String fileName = LocalDate.now() + "-" + originalFileName;
 
         InputStream inputFile = multipartFile.getInputStream();
         Archive archive = new Archive();
@@ -62,8 +63,11 @@ public class FileService {
         //dynamoDbService.putItem(archive);
         repository.save(archive);
 
-        String message = "File " + archive.getName() + " created at" + LocalDate.now();
-        sqsService.publish(message);
+        String message = "File " + archive.getName() + " created at " + LocalDate.now();
+        JSONObject object = createJsonFile(archive.getName(), message, LocalDate.now());
+
+        //sqsService.publish(message);
+        lambdaService.sendMessage(object.toString());
 
         return archive;
     }
@@ -84,15 +88,14 @@ public class FileService {
 
             Resource resource = new UrlResource(fileUri);
 
-            //dynamoDbService.getFile("name", fileName);
-
             long numberDownloads = archive.getNumberOfDownloads();
             archive.setNumberOfDownloads(numberDownloads++);
 
             repository.save(archive);
 
             String message = "File " + archive.getName() + " downloaded at" + LocalDate.now() + " number of downloads: " + numberDownloads;
-            sqsService.publish(message);
+
+            lambdaService.sendMessage(message);
 
             return resource;
         } catch (IOException e) {
@@ -110,7 +113,7 @@ public class FileService {
             repository.delete(archive);
 
             String message = "File " + archive.getName() + " deleted at" + LocalDate.now();
-            sqsService.publish(message);
+            lambdaService.sendMessage(message);
 
             return s3Service.deleteFile(name);
         } catch (Exception ex) {
@@ -118,4 +121,12 @@ public class FileService {
         }
     }
 
+    private JSONObject createJsonFile(String archiveName, String message, LocalDate date) {
+        JSONObject object = new JSONObject();
+        object.put("filename", archiveName);
+        object.put("createdAt", date);
+        object.put("message", message);
+
+        return object;
+    }
 }
