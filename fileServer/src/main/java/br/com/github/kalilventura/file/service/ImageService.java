@@ -2,12 +2,14 @@ package br.com.github.kalilventura.file.service;
 
 import br.com.github.kalilventura.file.domain.Archive;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
+import br.com.github.kalilventura.file.service.aws.AmazonLambdaService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.imgscalr.Scalr;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -21,40 +23,56 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class ImageService {
-
-    @Autowired
-    private AmazonS3Service s3Service;
-    @Autowired
-    private ArchiveRepository repository;
+    private final AmazonS3Service s3Service;
+    private final ArchiveRepository repository;
+    private final AmazonLambdaService lambdaService;
 
     @Value("${img.prefix.event}")
     private String prefix;
 
-//    public boolean uploadPicture(MultipartFile multipartFile) {
-//        long size = multipartFile.getSize();
-//        String imageName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
-//
-//        BufferedImage jpgImage = getJpgImageFromFile(multipartFile);
-//        jpgImage = cropSquare(jpgImage);
-//        //jpgImage = imageService.resize(jpgImage, size);
-//
-//        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-//        String fileName = prefix + imageName;
-//
-//        Archive archive = new Archive();
-//        archive.setExtension(extension);
-//        archive.setName(fileName);
-//        archive.setSize(size);
-//        archive.setVersion("1");
-//        archive.setNumberOfDownloads(0);
-//        archive.setETag(s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image"));
-//
-//        return dynamoDbService.putItem(archive);
-//    }
+    @SneakyThrows
+    public Archive uploadPicture(MultipartFile multipartFile) {
+        long size = multipartFile.getSize();
+        String imageName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
+
+        BufferedImage jpgImage = getJpgImageFromFile(multipartFile);
+        jpgImage = cropSquare(jpgImage);
+        //jpgImage = imageService.resize(jpgImage, size);
+        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+        String fileName = prefix + imageName;
+        String eTag = s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image");
+
+        Archive archive = new Archive();
+        archive.setExtension(extension);
+        archive.setName(fileName);
+        archive.setSize(size);
+        archive.setVersion("1");
+        archive.setNumberOfDownloads(0);
+        archive.setETag(eTag);
+
+        repository.save(archive);
+
+        String message = "Image " + archive.getName() + " created at " + LocalDate.now();
+        JSONObject object = createJsonFile(archive.getName(), message, LocalDate.now());
+        lambdaService.sendMessage(object.toString());
+
+        return archive;
+    }
+
+
+    private JSONObject createJsonFile(String archiveName, String message, LocalDate date) {
+        JSONObject object = new JSONObject();
+        object.put("filename", archiveName);
+        object.put("createdAt", date);
+        object.put("message", message);
+
+        return object;
+    }
 
     @SneakyThrows
     public Resource downloadPicture(String name) {
@@ -74,7 +92,7 @@ public class ImageService {
             Resource resource = new UrlResource(fileUri);
 
             long numberDownloads = archive.getNumberOfDownloads();
-            archive.setNumberOfDownloads(numberDownloads++);
+            archive.setNumberOfDownloads(++numberDownloads);
 
             repository.save(archive);
 
@@ -101,8 +119,7 @@ public class ImageService {
 
     private BufferedImage getJpgImageFromFile(MultipartFile uploadedFile) {
         try {
-            BufferedImage img = ImageIO.read(uploadedFile.getInputStream());
-            return img;
+            return ImageIO.read(uploadedFile.getInputStream());
         } catch (IOException e) {
             throw new IllegalStateException("Erro ao ler arquivo");
         }
@@ -126,7 +143,7 @@ public class ImageService {
     }
 
     private BufferedImage cropSquare(BufferedImage sourceImg) {
-        int min = (sourceImg.getHeight() <= sourceImg.getWidth()) ? sourceImg.getHeight() : sourceImg.getWidth();
+        int min = Math.min(sourceImg.getHeight(), sourceImg.getWidth());
         return Scalr.crop(
                 sourceImg,
                 (sourceImg.getWidth() / 2) - (min / 2),

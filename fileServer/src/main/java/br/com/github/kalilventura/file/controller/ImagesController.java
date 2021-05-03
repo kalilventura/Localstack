@@ -1,8 +1,10 @@
 package br.com.github.kalilventura.file.controller;
 
 import br.com.github.kalilventura.file.domain.Archive;
-import br.com.github.kalilventura.file.service.FileService;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.github.kalilventura.file.service.ImageService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,21 +16,24 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/files")
-public class FilesController {
-    @Autowired
-    private FileService fileService;
+@Api(value = "Images")
+@RequiredArgsConstructor
+@RequestMapping("/api/images")
+public class ImagesController {
+    private final ImageService imageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<Archive> uploadFile(@RequestParam("file") MultipartFile file) {
-        Archive response = fileService.uploadFile(file);
+    @ApiOperation(value = "Upload an image in s3 bucket")
+    public ResponseEntity<Archive> uploadImage(@RequestParam("file") MultipartFile file) {
+        Archive response = imageService.uploadPicture(file);
         return ResponseEntity.ok(response);
     }
 
+    
     @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) throws IOException {
+    public ResponseEntity<Resource> downloadImage(@PathVariable String fileName, HttpServletRequest request) throws IOException {
         try {
-            Resource resource = fileService.downloadFile(fileName);
+            Resource resource = imageService.downloadPicture(fileName);
             String contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
 
             return ResponseEntity
@@ -41,12 +46,16 @@ public class FilesController {
         }
     }
 
-    @DeleteMapping("/delete/{fileName:.+}")
-    public ResponseEntity deleteFile(@PathVariable String fileName) {
-        fileService.deleteFile(fileName);
-        return ResponseEntity
-                .noContent()
-                .build();
-    }
 
+    @DeleteMapping("/delete/{fileName:.+}")
+    public ResponseEntity deleteImage(@PathVariable String fileName) {
+        try {
+            imageService.deleteImage(fileName);
+            return ResponseEntity
+                    .noContent()
+                    .build();
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
 }
