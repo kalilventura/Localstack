@@ -1,0 +1,17 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation LocalStack-DynamoDB.",
+  "Resources": {
+    "MyRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "BodyS3Location": {
+          "Bucket": "repository",
+          "Key": "contrato-api-gateway-v2.yml"
+        },
+        "Description": "API destinada ao estudo do Localstack",
+        "Name": "LocalstackRestAPI"
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+openapi: "3.0.1"
+info:
+  title: "Localstack"
+  description: "API destinada a desmonstracao do localstack"
+  version: "2021-05-05T19:58:32Z"
+servers:
+  - url: "https://thxqvh0y63.execute-api.us-east-1.amazonaws.com/{basePath}"
+    variables:
+      basePath:
+        default: "/v2"
+paths:
+  /files/download:
+    get:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:get-lambda-api-upload-binary-file/invocations"
+        httpMethod: "POST"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+  /files/upload:
+    post:
+      responses:
+        "200":
+          description: "200 response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Empty"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:lambda-api-upload-binary-file/invocations"
+        httpMethod: "POST"
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          image/jpeg: "{\n    \"content\": \"$input.body\",\n    \"Content-Type\"\
+            : \"image/jpeg\"\n}"
+        passthroughBehavior: "when_no_templates"
+        contentHandling: "CONVERT_TO_TEXT"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+components:
+  schemas:
+    Empty:
+      title: "Empty Schema"
+      type: "object"
+x-amazon-apigateway-binary-media-types:
+  - "application/pdf"
+  - "image/jpeg"
