@@ -1,7 +1,7 @@
 package br.com.github.kalilventura.file.service.aws;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,9 +14,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Service
+@RequiredArgsConstructor
 public class AmazonS3Service {
-    @Autowired
-    private S3Client s3client;
+    private final S3Client s3client;
 
     @Value("${s3.bucket}")
     private String bucketName;

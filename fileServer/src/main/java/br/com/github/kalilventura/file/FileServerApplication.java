@@ -5,10 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FileServierApplication implements CommandLineRunner {
+public class FileServerApplication implements CommandLineRunner {
 
     public static void main(String[] args) {
-        SpringApplication.run(FileServierApplication.class, args);
+        SpringApplication.run(FileServerApplication.class, args);
     }
 
     @Override

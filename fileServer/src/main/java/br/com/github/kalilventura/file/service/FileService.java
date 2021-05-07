@@ -1,6 +1,7 @@
 package br.com.github.kalilventura.file.service;
 
 import br.com.github.kalilventura.file.domain.Archive;
+import br.com.github.kalilventura.file.domain.UploadRequest;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
 import br.com.github.kalilventura.file.service.aws.AmazonLambdaService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
@@ -10,7 +11,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -28,25 +28,21 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class FileService {
-    @Autowired
-    private AmazonS3Service s3Service;
-    @Autowired
-    private ArchiveRepository repository;
-    @Autowired
-    private SqsService sqsService;
-    @Autowired
-    private AmazonLambdaService lambdaService;
+    private final AmazonS3Service s3Service;
+    private final ArchiveRepository repository;
+    private final SqsService sqsService;
+    private final AmazonLambdaService lambdaService;
 
-    @Value("${img.prefix.event}")
+    @Value("${img.prefix}")
     private String prefix;
 
     @SneakyThrows
-    public Archive uploadFile(MultipartFile multipartFile) {
+    public Archive uploadFile(MultipartFile multipartFile, UploadRequest request) {
         long size = multipartFile.getSize();
         String originalFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
 
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-        String fileName = LocalDate.now() + "-" + originalFileName;
+        String fileName = prefix + "-" + originalFileName;
 
         InputStream inputFile = multipartFile.getInputStream();
         Archive archive = new Archive();

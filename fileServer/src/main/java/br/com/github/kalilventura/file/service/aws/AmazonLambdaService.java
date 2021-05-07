@@ -1,6 +1,6 @@
 package br.com.github.kalilventura.file.service.aws;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.SdkBytes;
@@ -9,15 +9,15 @@ import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 @Service
+@RequiredArgsConstructor
 public class AmazonLambdaService {
-    @Autowired
-    private LambdaClient lambdaClient;
+    private final LambdaClient lambdaClient;
 
     @Value("${lambda.function}")
     private String functionName;
 
     public String sendMessage(String message) {
-        return invokeFunction("LocalstackCloudformation", message);
+        return invokeFunction("DynamoOperations", message);
     }
 
     private String invokeFunction(String functionName, String message) {

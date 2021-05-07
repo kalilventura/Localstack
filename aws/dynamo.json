@@ -1,0 +1,27 @@
+{
+    "TableName": "Files",
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "Id",
+            "AttributeType": "N"
+        },
+        {
+            "AttributeName": "Image",
+            "AttributeType": "S"
+        }
+    ],
+    "ProvisionedThroughput": {
+        "WriteCapacityUnits": 5,
+        "ReadCapacityUnits": 5
+    },
+    "KeySchema": [
+        {
+            "AttributeName": "Id",
+            "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "Image",
+            "KeyType": "RANGE"
+        }
+    ]
+}

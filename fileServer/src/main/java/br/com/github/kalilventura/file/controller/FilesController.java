@@ -2,7 +2,7 @@ package br.com.github.kalilventura.file.controller;
 
 import br.com.github.kalilventura.file.domain.Archive;
 import br.com.github.kalilventura.file.service.FileService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,14 +14,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/files")
 public class FilesController {
-    @Autowired
-    private FileService fileService;
+    private final FileService fileService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload")
     public ResponseEntity<Archive> uploadFile(@RequestParam("file") MultipartFile file) {
-        Archive response = fileService.uploadFile(file);
+        Archive response = fileService.uploadFile(file, null);
         return ResponseEntity.ok(response);
     }
 
@@ -42,7 +42,7 @@ public class FilesController {
     }
 
     @DeleteMapping("/delete/{fileName:.+}")
-    public ResponseEntity deleteFile(@PathVariable String fileName) {
+    public ResponseEntity<Void> deleteFile(@PathVariable String fileName) {
         fileService.deleteFile(fileName);
         return ResponseEntity
                 .noContent()

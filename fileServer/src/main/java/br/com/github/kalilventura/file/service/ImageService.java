@@ -32,7 +32,7 @@ public class ImageService {
     private final ArchiveRepository repository;
     private final AmazonLambdaService lambdaService;
 
-    @Value("${img.prefix.event}")
+    @Value("${img.prefix}")
     private String prefix;
 
     @SneakyThrows

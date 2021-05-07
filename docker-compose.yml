@@ -2,14 +2,16 @@ version: "2.1"
 
 services:
   localstack:
-    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    container_name: localstack
     image: localstack/localstack
-    #network_mode: bridge
+    depends_on:
+      - dynamodb-local
+      - database
     ports:
       - "4566:4566"
       - "4571:4571"
     environment:
-      - SERVICES=${SERVICES- }
+      - SERVICES=sqs,s3,sns,cloudformation
       - DEBUG=${DEBUG- }
       - DATA_DIR=${DATA_DIR- }
       - PORT_WEB_UI=${PORT_WEB_UI- }
@@ -28,6 +30,8 @@ services:
     image: mysql:latest
     command: --default-authentication-plugin=mysql_native_password
     restart: always
+    depends_on:
+      - dynamodb-local
     ports:
       - "3306:3306"
     environment:
@@ -36,6 +40,19 @@ services:
       MYSQL_USER: applicationEvent
       MYSQL_PASSWORD: dhcllkrjkdl@#4984834
       MYSQL_ROOT_PASSWORD: x!ekxxlo098@ec
+    volumes:
+      - data_volume:/var/lib/mysql
+    networks:
+      - application-network
+
+  dynamodb-local:
+    container_name: dynamodb-local
+    image: "amazon/dynamodb-local:latest"
+    command: "-jar DynamoDBLocal.jar -sharedDb -optimizeDbBeforeStartup -dbPath ./data"
+    ports:
+      - "8001:8000"
+    volumes:
+      - "data_volume:/home/dynamodblocal/data"
     networks:
       - application-network
 

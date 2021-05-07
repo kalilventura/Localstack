@@ -29,7 +29,7 @@ public class ImagesController {
         return ResponseEntity.ok(response);
     }
 
-    
+
     @GetMapping("/download/{fileName:.+}")
     public ResponseEntity<Resource> downloadImage(@PathVariable String fileName, HttpServletRequest request) throws IOException {
         try {
@@ -48,7 +48,7 @@ public class ImagesController {
 
 
     @DeleteMapping("/delete/{fileName:.+}")
-    public ResponseEntity deleteImage(@PathVariable String fileName) {
+    public ResponseEntity<Void> deleteImage(@PathVariable String fileName) {
         try {
             imageService.deleteImage(fileName);
             return ResponseEntity

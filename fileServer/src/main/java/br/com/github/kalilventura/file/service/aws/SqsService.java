@@ -1,6 +1,6 @@
 package br.com.github.kalilventura.file.service.aws;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -9,9 +9,9 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 @Service
+@RequiredArgsConstructor
 public class SqsService {
-    @Autowired
-    private SqsClient sqsClient;
+    private final SqsClient sqsClient;
 
     @Value("${sqs.queuename}")
     private String queueName;
