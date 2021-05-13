@@ -17,7 +17,8 @@ public class AmazonLambdaService {
     private String functionName;
 
     public String sendMessage(String message) {
-        return invokeFunction("DynamoOperations", message);
+        return invokeFunction("SaveData", message);
+//        return invokeFunction("DynamoOperationsFunction", message);
     }
 
     private String invokeFunction(String functionName, String message) {

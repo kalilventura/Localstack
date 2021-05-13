@@ -11,7 +11,7 @@ services:
       - "4566:4566"
       - "4571:4571"
     environment:
-      - SERVICES=sqs,s3,sns,cloudformation
+      - SERVICES=sqs,s3,sns,cloudformation,lambda
       - DEBUG=${DEBUG- }
       - DATA_DIR=${DATA_DIR- }
       - PORT_WEB_UI=${PORT_WEB_UI- }

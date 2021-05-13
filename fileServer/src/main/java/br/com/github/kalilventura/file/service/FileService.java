@@ -60,7 +60,7 @@ public class FileService {
         repository.save(archive);
 
         String message = "File " + archive.getName() + " created at " + LocalDate.now();
-        JSONObject object = createJsonFile(archive.getName(), message, LocalDate.now());
+        JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
 
         //sqsService.publish(message);
         lambdaService.sendMessage(object.toString());
@@ -117,12 +117,14 @@ public class FileService {
         }
     }
 
-    private JSONObject createJsonFile(String archiveName, String message, LocalDate date) {
+    private JSONObject createJsonFile(long id, String archiveName, String message, LocalDate date) {
         JSONObject object = new JSONObject();
+        object.put("id", id);
         object.put("filename", archiveName);
         object.put("createdAt", date);
         object.put("message", message);
 
         return object;
     }
+
 }

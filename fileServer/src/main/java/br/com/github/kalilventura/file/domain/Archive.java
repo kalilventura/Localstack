@@ -6,6 +6,9 @@ import lombok.Data;
 import javax.persistence.*;
 import java.time.LocalDate;
 
+/***
+ * Representa os metadados
+ */
 @Data
 @Entity
 public class Archive {
