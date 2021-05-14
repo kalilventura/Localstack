@@ -1,7 +1,6 @@
 package br.com.github.kalilventura.file.service;
 
 import br.com.github.kalilventura.file.domain.Archive;
-import br.com.github.kalilventura.file.domain.UploadRequest;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
 import br.com.github.kalilventura.file.service.aws.AmazonLambdaService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
@@ -37,7 +36,7 @@ public class FileService {
     private String prefix;
 
     @SneakyThrows
-    public Archive uploadFile(MultipartFile multipartFile, UploadRequest request) {
+    public Archive uploadFile(MultipartFile multipartFile) {
         long size = multipartFile.getSize();
         String originalFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
 

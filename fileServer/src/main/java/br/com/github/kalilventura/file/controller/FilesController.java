@@ -21,7 +21,7 @@ public class FilesController {
 
     @PostMapping(value = "/upload")
     public ResponseEntity<Archive> uploadFile(@RequestParam("file") MultipartFile file) {
-        Archive response = fileService.uploadFile(file, null);
+        Archive response = fileService.uploadFile(file);
         return ResponseEntity.ok(response);
     }
 
