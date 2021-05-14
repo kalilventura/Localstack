@@ -19,7 +19,6 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.LocalDate;
@@ -55,13 +54,12 @@ public class FileService {
         archive.setVersion("1");
         archive.setNumberOfDownloads(0);
 
-        //dynamoDbService.putItem(archive);
         repository.save(archive);
 
         String message = "File " + archive.getName() + " created at " + LocalDate.now();
         JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
 
-        //sqsService.publish(message);
+        sqsService.publish(object.toString());
         lambdaService.sendMessage(object.toString());
 
         return archive;
@@ -84,20 +82,20 @@ public class FileService {
             Resource resource = new UrlResource(fileUri);
 
             long numberDownloads = archive.getNumberOfDownloads();
-            archive.setNumberOfDownloads(numberDownloads++);
+            archive.setNumberOfDownloads(++numberDownloads);
 
             repository.save(archive);
 
             String message = "File " + archive.getName() + " downloaded at" + LocalDate.now() + " number of downloads: " + numberDownloads;
+            JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
 
+            sqsService.publish(object.toString());
             lambdaService.sendMessage(message);
 
             return resource;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
-        } catch (Exception ex) {
-            throw ex;
         }
     }
 
@@ -108,11 +106,15 @@ public class FileService {
             repository.delete(archive);
 
             String message = "File " + archive.getName() + " deleted at" + LocalDate.now();
+            JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
+
+            sqsService.publish(object.toString());
             lambdaService.sendMessage(message);
 
             return s3Service.deleteFile(name);
-        } catch (Exception ex) {
-            throw ex;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -122,7 +124,6 @@ public class FileService {
         object.put("filename", archiveName);
         object.put("createdAt", date);
         object.put("message", message);
-
         return object;
     }
 

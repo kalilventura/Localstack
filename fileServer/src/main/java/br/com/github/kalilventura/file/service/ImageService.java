@@ -4,6 +4,7 @@ import br.com.github.kalilventura.file.domain.Archive;
 import br.com.github.kalilventura.file.repository.ArchiveRepository;
 import br.com.github.kalilventura.file.service.aws.AmazonLambdaService;
 import br.com.github.kalilventura.file.service.aws.AmazonS3Service;
+import br.com.github.kalilventura.file.service.aws.SqsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 public class ImageService {
     private final AmazonS3Service s3Service;
     private final ArchiveRepository repository;
+    private final SqsService sqsService;
     private final AmazonLambdaService lambdaService;
 
     @Value("${img.prefix}")
@@ -42,7 +44,7 @@ public class ImageService {
 
         BufferedImage jpgImage = getJpgImageFromFile(multipartFile);
         jpgImage = cropSquare(jpgImage);
-        //jpgImage = imageService.resize(jpgImage, size);
+
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
         String fileName = prefix + imageName;
         String eTag = s3Service.uploadFile(getInputStream(jpgImage, extension), fileName, "image");
@@ -59,6 +61,8 @@ public class ImageService {
 
         String message = "Image " + archive.getName() + " created at " + LocalDate.now();
         JSONObject object = createJsonFile(archive.getName(), message, LocalDate.now());
+
+        sqsService.publish(object.toString());
         lambdaService.sendMessage(object.toString());
 
         return archive;
@@ -96,12 +100,16 @@ public class ImageService {
 
             repository.save(archive);
 
+            String message = "File " + archive.getName() + " downloaded at" + LocalDate.now() + " number of downloads: " + numberDownloads;
+            JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
+
+            sqsService.publish(object.toString());
+            lambdaService.sendMessage(message);
+
             return resource;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
-        } catch (Exception ex) {
-            throw ex;
         }
     }
 
@@ -110,6 +118,12 @@ public class ImageService {
         try {
             Archive archive = repository.findArchiveByName(name);
             repository.delete(archive);
+
+            String message = "File " + archive.getName() + " deleted at" + LocalDate.now();
+            JSONObject object = createJsonFile(archive.getId(), archive.getName(), message, LocalDate.now());
+
+            sqsService.publish(object.toString());
+            lambdaService.sendMessage(message);
 
             return s3Service.deleteFile(name);
         } catch (Exception ex) {
@@ -154,5 +168,14 @@ public class ImageService {
 
     private BufferedImage resize(BufferedImage sourceImg, int size) {
         return Scalr.resize(sourceImg, Scalr.Method.ULTRA_QUALITY, size);
+    }
+
+    private JSONObject createJsonFile(long id, String archiveName, String message, LocalDate date) {
+        JSONObject object = new JSONObject();
+        object.put("id", id);
+        object.put("filename", archiveName);
+        object.put("createdAt", date);
+        object.put("message", message);
+        return object;
     }
 }
